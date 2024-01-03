@@ -14,7 +14,22 @@ def create_app():
     app.config["SQLALCHEMY_DATABASE_URI"] = settings.SQLALCHEMY_DATABASE_URI
     db.init_app(app)
     with app.app_context():
-        db.create_all() 
+        # if not database_exists(settings.SQLALCHEMY_DATABASE_URI)
+        from sqlalchemy import create_engine
+        import sqlalchemy
+        engine = create_engine(settings.SQLALCHEMY_DATABASE_URI)
+        sqlconnect = engine.connect()
+        assert isinstance(sqlconnect, sqlalchemy.engine.Connection)
+        is_authtable_present = engine.dialect.has_table(sqlconnect, "auth")
+        # is_notestable_present = sqlalchemy.engine.dialect.has_table(
+        #     settings.SQLALCHEMY_DATABASE_URI, 
+        #     "auth",
+        # )
+        if not is_authtable_present:
+            print("Table not present in database, creating tables...", flush=True)
+            db.create_all()
+        else:
+            print("Tabes already created.", flush=True)
     
     app.register_blueprint(
         auth_bp, url_prefix=f"/api"

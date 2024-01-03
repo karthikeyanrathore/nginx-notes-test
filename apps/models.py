@@ -3,7 +3,7 @@ from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.sql import func
 from sqlalchemy.dialects import postgresql
-from sqlalchemy import cast
+from sqlalchemy import cast, literal_column
 
 
 from apps.database import db
@@ -12,7 +12,8 @@ def create_tsvector(*args):
     exp = args[0]
     for e in args[1:]:
         exp += ' ' + e
-    return func.to_tsvector('english', exp)
+    # https://github.com/sqlalchemy/sqlalchemy/discussions/9910
+    return func.to_tsvector(literal_column("'english'"), exp)
 
 
 class Auth(db.Model):
