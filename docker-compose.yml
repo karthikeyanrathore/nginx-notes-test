@@ -1,0 +1,53 @@
+version: "3.7"
+
+services:
+
+  notes-db:
+    container_name: notes-db
+    image: postgres:12.3-alpine
+    # restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    volumes:
+    # Persist data that is stored in db after
+    # container is shutdown.
+      - notes-db_data:/var/lib/postgresql/data/
+    networks:
+      - notes-net
+    # ports:
+    #   - "5432:5432"
+    
+  notes-api:
+    container_name: notes-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - JWT_SECRET_KEY=jta99001
+      - POSTGRES_DB_HOST=notes-db
+    depends_on:
+      - notes-db
+    # restart: always
+    networks:
+      - notes-net
+    # ports:
+    #   - "8000:8000"
+
+  nginx-performer:
+    container_name: nginx-performer
+    image: nginx:1.25.3-alpine
+    restart: always
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      - notes-net
+    ports:
+      - "80:80"
+
+volumes:
+  notes-db_data:
+
+networks:
+  notes-net:
