@@ -10,7 +10,7 @@ postgres container is acting weird, if you face any issue please write me karthi
 ```bash
 docker-compose down -v; docker-compose build;docker-compose up
 ```
-See spec/openapi.yml to test all the RestfulAPI's.
+See spec/openapi.yml to test all the API's locally.
 
 ## How to enter postgres container for debuggging?
 
