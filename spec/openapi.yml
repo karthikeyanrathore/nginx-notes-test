@@ -1,0 +1,173 @@
+openapi: 3.0.0
+info:
+  title: Nginx Notes
+  version: 1.0.0
+  description: API for handling user authentication and notes
+
+paths:
+  /auth/signup:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: User successfully registered
+        '404':
+          description: Invalid request or missing JSON inputs
+
+  /auth/login:
+    post:
+      summary: Log in a user and get an access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: User successfully logged in
+        '401':
+          description: Invalid username, password, or missing information
+
+  /notes:
+    get:
+      summary: Get user's notes
+      responses:
+        '200':
+          description: List of user's notes
+        '401':
+          description: Access token invalid or expired
+
+    post:
+      summary: Create a new note
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                note:
+                  type: string
+      responses:
+        '200':
+          description: Note successfully created
+        '401':
+          description: Access token invalid or expired
+
+  /note/{id}:
+    get:
+      summary: Get a specific note by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Note found
+        '404':
+          description: Note not found
+        '401':
+          description: Access token invalid or expired
+
+    put:
+      summary: Update a specific note by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                note:
+                  type: string
+      responses:
+        '200':
+          description: Note successfully updated
+        '404':
+          description: Note not found
+        '401':
+          description: Access token invalid or expired
+
+    delete:
+      summary: Delete a specific note by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Note successfully deleted
+        '404':
+          description: Note not found
+        '401':
+          description: Access token invalid or expired
+
+  /notes/{id}/share:
+    post:
+      summary: Share a note with another user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                another_username:
+                  type: string
+      responses:
+        '200':
+          description: Note successfully shared
+        '404':
+          description: User or note not found
+        '401':
+          description: Access token invalid or expired
+
+  /search:
+    get:
+      summary: Search for notes based on a query
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of notes matching the search query
+        '404':
+          description: No matching notes found
+        '401':
+          description: Access token invalid or expired

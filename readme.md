@@ -10,6 +10,7 @@ postgres container is acting weird, if you face any issue please write me karthi
 ```bash
 docker-compose down -v; docker-compose build;docker-compose up
 ```
+See spec/openapi.yml to test all the RestfulAPI's.
 
 ## How to enter postgres container for debuggging?
 
@@ -38,3 +39,9 @@ Libraries used
 3. postgresQL
 4. nginx
 5. docker-compose
+
+
+## core features
+* added text search index for search notes
+* added rate limiter for controlling API requests.
+* disabled `TCP_NODELAY` option for performance.
