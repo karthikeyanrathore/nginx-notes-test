@@ -5,7 +5,7 @@ services:
   notes-db:
     container_name: notes-db
     image: postgres:12.3-alpine
-    # restart: always
+    restart: unless-stopped
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -29,7 +29,8 @@ services:
       - POSTGRES_DB_HOST=notes-db
     depends_on:
       - notes-db
-    # restart: always
+    # https://docs.docker.com/config/containers/start-containers-automatically/#use-a-restart-policy
+    restart: unless-stopped
     networks:
       - notes-net
     deploy:
