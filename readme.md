@@ -23,13 +23,13 @@ docker exec -it notes-db psql -U postgres
 ```mermaid
 graph LR
 
-client -->|"http without SSL certs"| nginx-load-balancer:80 
-nginx-load-balancer:80 --> |"route/" | notes-api_1:8000
-nginx-load-balancer:80 --> |"route/" | notes-api_2:8000
-nginx-load-balancer:80 --> |"route/" | notes-api_3:8000
-nginx-load-balancer:80 --> |"route/" | notes-api_4:8000
-nginx-load-balancer:80 --> |"route/" | notes-api_5:8000
-nginx-load-balancer:80 --> |"route/" | notes-api_6:8000
+client -->|"HTTP without SSL"| nginx-load-balancer:80 
+nginx-load-balancer:80 --> |"HTTP" | notes-api_1:8000
+nginx-load-balancer:80 --> |"HTTP" | notes-api_2:8000
+nginx-load-balancer:80 --> |"HTTP" | notes-api_3:8000
+nginx-load-balancer:80 --> |"HTTP" | notes-api_4:8000
+nginx-load-balancer:80 --> |"HTTP" | notes-api_5:8000
+nginx-load-balancer:80 --> |"HTTP" | notes-api_6:8000
 
 notes-api_1:8000 --> |"DB connection" | notes-db:5432
 notes-api_2:8000 --> |"DB connection" | notes-db:5432
