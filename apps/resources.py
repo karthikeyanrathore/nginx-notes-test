@@ -89,7 +89,6 @@ class Notes(Resource):
                 "access token is valid but for some reason username does not exists in database.",
                 "Please don't run docker-compose down -v again and again. it removes data from database",
             ))
-        
         ret = []
         for note in auth.notes:
             ret.append(note.message)

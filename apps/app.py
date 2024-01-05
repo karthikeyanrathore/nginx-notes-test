@@ -48,5 +48,11 @@ def create_app():
             db.session.commit()
         g.db = db
 
+    @app.after_request
+    def log_request(response):
+        import socket
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM); s.connect(("8.8.8.8", 80)); ip_address = s.getsockname()[0]
+        print(f"Ok - [LOG] CONTAINER IP: {ip_address}")
+        return response
     # app.run(debug=1)
     return app

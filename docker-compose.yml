@@ -20,7 +20,7 @@ services:
     #   - "5432:5432"
     
   notes-api:
-    container_name: notes-api
+    # container_name: notes-api
     build:
       context: .
       dockerfile: Dockerfile
@@ -32,8 +32,11 @@ services:
     # restart: always
     networks:
       - notes-net
-    # ports:
-    #   - "8000:8000"
+    deploy:
+      mode: replicated
+      replicas: 6
+    ports:
+      - "8000-8007:8000"
 
   nginx-performer:
     container_name: nginx-performer
@@ -45,6 +48,10 @@ services:
       - notes-net
     ports:
       - "80:80"
+    depends_on:
+      - notes-api
+      - notes-db
+
 
 volumes:
   notes-db_data:

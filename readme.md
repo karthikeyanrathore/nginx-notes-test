@@ -23,14 +23,20 @@ docker exec -it notes-db psql -U postgres
 ```mermaid
 graph LR
 
-subgraph Notes-Service
-  notes-api:8000
-  notes-db:5432
-end
+client -->|"http without SSL certs"| nginx-load-balancer:80 
+nginx-load-balancer:80 --> |"route/" | notes-api_1:8000
+nginx-load-balancer:80 --> |"route/" | notes-api_2:8000
+nginx-load-balancer:80 --> |"route/" | notes-api_3:8000
+nginx-load-balancer:80 --> |"route/" | notes-api_4:8000
+nginx-load-balancer:80 --> |"route/" | notes-api_5:8000
+nginx-load-balancer:80 --> |"route/" | notes-api_6:8000
 
-client -->|"http"| nginx-service:80 
-nginx-service:80 --> |"/" | notes-api:8000
-notes-api:8000 --> |"flask_sqlalchemy: SQLALCHEMY_DATABASE_URI" | notes-db:5432
+notes-api_1:8000 --> |"DB connection" | notes-db:5432
+notes-api_2:8000 --> |"DB connection" | notes-db:5432
+notes-api_3:8000 --> |"DB connection" | notes-db:5432
+notes-api_4:8000 --> |"DB connection" | notes-db:5432
+notes-api_5:8000 --> |"DB connection" | notes-db:5432
+notes-api_6:8000 --> |"DB connection" | notes-db:5432
 ```
 
 Libraries used 

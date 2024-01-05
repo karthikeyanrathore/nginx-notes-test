@@ -3,8 +3,11 @@ LABEL author="karthikerathore@gmail.com"
 
 WORKDIR /home
 
+ENV PYTHONUNBUFFERED=1
+
 RUN pip3 install --upgrade pip
 
+# TODO: install packages in single docker layer.
 RUN pip3 install gunicorn
 RUN pip3 install flask-restful
 RUN pip3 install Flask
