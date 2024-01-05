@@ -30,7 +30,7 @@ def is_token_valid(func):
         except TypeError:
             return response(401, "Please provide access token in headers.")
         except DecodeError:
-            return response(401, "JWT expection raise. Please input valid access token.")
+            return response(401, "JWT exception raised. Please input valid access token.")
         except ExpiredSignatureError:
             return response(401, "Your Access token has expired. Please login again.")
         return func(*args, **kwargs)

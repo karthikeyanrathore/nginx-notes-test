@@ -15,6 +15,7 @@ RUN pip3 install psycopg2-binary
 
 
 COPY ./apps /home/apps/
+COPY ./wait-for.sh /home/
 
-CMD gunicorn -w 4 -b 0.0.0.0 'apps.app:create_app()'
+CMD sh ./wait-for.sh notes-db:5432 -- echo "postgres is up!" && gunicorn -w 4 -b 0.0.0.0 'apps.app:create_app()'
 
