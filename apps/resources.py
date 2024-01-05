@@ -84,7 +84,11 @@ class Notes(Resource):
         username = get_username_from_token()
         auth = g.db.session.query(models.Auth).filter_by(name=username).one_or_none()
         if not auth:
-            return response(200, "weird error, access token is valid but for some reason username does not exists in database.")
+            return response(200, (
+                "weird error", 
+                "access token is valid but for some reason username does not exists in database.",
+                "Please don't run docker-compose down -v again and again. it removes data from database",
+            ))
         
         ret = []
         for note in auth.notes:
