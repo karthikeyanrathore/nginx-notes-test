@@ -11,8 +11,8 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=postgres
     volumes:
-    # Persist data that is stored in db after
-    # container is shutdown.
+      # Persist data that is stored in db after
+      # container is shutdown.
       - notes-db_data:/var/lib/postgresql/data/
     networks:
       - notes-net
@@ -37,7 +37,7 @@ services:
       mode: replicated
       replicas: 6
     ports:
-      - "8000-8007:8000"
+      - "8000-9007:8000"
 
   nginx-performer:
     container_name: nginx-performer

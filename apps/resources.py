@@ -142,7 +142,7 @@ class ShareNote(Resource):
         note = g.db.session.query(models.Notes).filter_by(id=id).one_or_none()
         if not note:
             return response(404, "Note not found.")
-        print(f"Sharing <note:{note.id}> with {another_user.name}")
+        print(f"Ok - Sharing <note:{note.id}> with {another_user.name}")
         note = Note(
             message=note.message,
             authenticated_user=another_user
