@@ -9,27 +9,16 @@ import apps.settings as settings
 def create_app():
     app = Flask(__name__)
     app.url_map.strict_slashes = False
-
+    
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["SQLALCHEMY_DATABASE_URI"] = settings.SQLALCHEMY_DATABASE_URI
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {'pool_size': 10}
+    # app.config["SQLALCHEMY_ECHO"] = True
     db.init_app(app)
-    # with app.app_context():
-    #     # if not database_exists(settings.SQLALCHEMY_DATABASE_URI)
-    #     from sqlalchemy import create_engine
-    #     import sqlalchemy
-    #     engine = create_engine(settings.SQLALCHEMY_DATABASE_URI)
-    #     sqlconnect = engine.connect()
-    #     assert isinstance(sqlconnect, sqlalchemy.engine.Connection)
-    #     is_authtable_present = engine.dialect.has_table(sqlconnect, "auth")
-    #     # is_notestable_present = sqlalchemy.engine.dialect.has_table(
-    #     #     settings.SQLALCHEMY_DATABASE_URI, 
-    #     #     "auth",
-    #     # )
-    #     if not is_authtable_present:
-    #         print("Table not present in database, creating tables...", flush=True)
-    #         # db.create_all()
-    #     else:
-    #         print("Tabes already created.", flush=True)
+    
+    with app.app_context():
+        print("Ok - [LOG] creating tables...")
+        db.create_all()
     
     app.register_blueprint(
         auth_bp, url_prefix=f"/api"
@@ -42,10 +31,7 @@ def create_app():
         return flask.make_response(jsonify(error=str(e)), 404)
 
     @app.before_request
-    def init_db():
-        with app.app_context():
-            db.create_all()
-            db.session.commit()
+    def flaskg_db():
         g.db = db
 
     @app.after_request
@@ -56,4 +42,14 @@ def create_app():
         print (f"Ok - [LOG] status code: {response.status_code}")
         return response
     # app.run(debug=1)
+    from uwsgidecorators import postfork, uwsgi
+    @postfork
+    def fork_caller():
+        # Each worker process should handle there own db connection pool.
+        # If worker's share db connection pool then it may lead to concurrency issues.
+        # Thankfully sqlalchemy pooled connections are not shared to forked processes.
+        # https://docs.sqlalchemy.org/en/13/core/pooling.html#using-connection-pools-with-multiprocessing-or-os-fork
+        # https://stackoverflow.com/a/15939406
+        print("Ok - [LOG] worker %d spinning flask app" % uwsgi.worker_id())
+
     return app

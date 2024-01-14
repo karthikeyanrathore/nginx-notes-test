@@ -39,6 +39,10 @@ notes-api_5:8000 --> |"DB connection" | notes-db:5432
 notes-api_6:8000 --> |"DB connection" | notes-db:5432
 ```
 
+## uWSGI architecture
+
+
+
 Libraries used 
 1. Flask-Restful lib
 2. gunicorn

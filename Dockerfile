@@ -1,24 +1,27 @@
-FROM python:3.9.18-alpine3.19 as base
-LABEL author="karthikerathore@gmail.com"
+FROM python:3.12-slim as base
+LABEL author="<karthikerathore@gmail.com>"
 
 WORKDIR /home
 
 ENV PYTHONUNBUFFERED=1
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential gcc libncursesw5-dev openssl netcat-traditional \
+    libssl-dev libsqlite3-dev tk-dev libgdbm-dev \
+    libc6-dev libbz2-dev libffi-dev python3-dev python3-pip \
+    libxml2-dev libxslt1-dev zlib1g zlib1g-dev python3-lxml \
+    && rm -rf /var/lib/apt/lists/*
+
+
+COPY ./requirements.docker.txt  /requirements.docker.txt
 RUN pip3 install --upgrade pip
-
-# TODO: install packages in single docker layer.
-RUN pip3 install gunicorn
-RUN pip3 install flask-restful
-RUN pip3 install Flask
-RUN pip3 install pyjwt
-RUN pip3 install SQLAlchemy
-RUN pip3 install Flask-SQLAlchemy
-RUN pip3 install psycopg2-binary
-
+RUN pip3 install -r /requirements.docker.txt
 
 COPY ./apps /home/apps/
 COPY ./wait-for.sh /home/
 
-CMD sh ./wait-for.sh notes-db:5432 -- echo "postgres is up!" && gunicorn -w 4 -b 0.0.0.0 'apps.app:create_app()'
+COPY wsgi.py /home/
+COPY uwsgi.ini /uwsgi.ini
+
+CMD sh ./wait-for.sh notes-db:5432 -- echo "postgres is up!" && uwsgi --ini /uwsgi.ini
 
