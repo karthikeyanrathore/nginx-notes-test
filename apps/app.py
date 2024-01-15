@@ -3,16 +3,48 @@ from flask import Flask, jsonify, g
 from apps.views import auth_bp, note_bp
 from apps.database import db
 import flask
+from sqlalchemy.pool import NullPool
+
 
 import apps.settings as settings
 
 def create_app():
     app = Flask(__name__)
+    # Ok, we are using uWSGI framework to run our FLASK app.
+    # It's a middleware between nginx and flask server.
+    
+    # uWSGI framework
+    # Ok, so from what i understood about uWSGI is that
+    # it runs on pre-forking mode by default. In pre-forking mode
+    # the main process (master) loads up the flask app and the workers
+    # processes are then forked from this main process, by this the workers
+    # have the same memory as the main process until they modify it. After
+    # which if any worker modify the memory it follow "copy on write" mechanism.
+    # Basically we use uWSGI with pre-fork mode to leverage memory sharing
+    # between master and worker processes.
+    # https://stackoverflow.com/a/54346101
+    # https://www.geeksforgeeks.org/copy-on-write/
+    # https://uwsgi-docs.readthedocs.io/en/latest/articles/TheArtOfGracefulReloading.html#preforking-vs-lazy-apps-vs-lazy
+    # https://stackoverflow.com/questions/41734740/minimal-example-of-uwsgis-shared-memory
+
     app.url_map.strict_slashes = False
     
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["SQLALCHEMY_DATABASE_URI"] = settings.SQLALCHEMY_DATABASE_URI
-    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {'pool_size': 10}
+    # sqlalchemy
+    # Architecture: https://docs.sqlalchemy.org/en/20/core/engines.html#engine-configuration
+    # is sqlalchemy thread safe?
+    # First sqlalchemy creates an engine which is a single process.
+    # and by default the connection pool size is set to 5. Now as we
+    # are running workers in os.fork() environment where workers can 
+    # execute sql query concurrently which might lead to race conditions or
+    # data inconsistency.
+    # sqlalchemy doc actually address this issue here: https://docs.sqlalchemy.org/en/20/core/pooling.html#using-connection-pools-with-multiprocessing-or-os-fork
+    # Don't pool conenctions. create new DB connection for each new sql command.
+    # This will slow down our app :( 
+    # TODO: Understand how to integrate flask-sqlalchemy with uWSGI workers.
+    # Adding NullPool for now.
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"poolclass": NullPool}
     # app.config["SQLALCHEMY_ECHO"] = True
     db.init_app(app)
     
@@ -32,6 +64,8 @@ def create_app():
 
     @app.before_request
     def flaskg_db():
+        print ("Ok - [LOG] worker %d is making request." % uwsgi.worker_id())
+        print (f"Ok - [LOG] DB connection pool: {db.engine.pool.status()}")
         g.db = db
 
     @app.after_request
@@ -45,11 +79,11 @@ def create_app():
     from uwsgidecorators import postfork, uwsgi
     @postfork
     def fork_caller():
-        # Each worker process should handle there own db connection pool.
-        # If worker's share db connection pool then it may lead to concurrency issues.
-        # Thankfully sqlalchemy pooled connections are not shared to forked processes.
-        # https://docs.sqlalchemy.org/en/13/core/pooling.html#using-connection-pools-with-multiprocessing-or-os-fork
-        # https://stackoverflow.com/a/15939406
-        print("Ok - [LOG] worker %d spinning flask app" % uwsgi.worker_id())
+        print("Ok - [LOG] worker %d is up!" % uwsgi.worker_id())
+
+    if bool(settings.JWT_SECRET_KEY) is False:
+        print("[WARNING] app JWT_SECRET_KEY is not set.")
 
     return app
+
+

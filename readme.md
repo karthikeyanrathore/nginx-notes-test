@@ -5,11 +5,31 @@ Notes Restful API's hosted on nginx server.
 
 ## How to run application?
 
-prerequisite: docker/ docker-compose
-postgres container is acting weird, if you face any issue please write me karthikerathore@gmail.com
+0. prerequisite: Docker/ Docker Compose version v2.24.0
+
+If you face any issue please write me karthikerathore@gmail.com
+
+1. run containers in production mode.
 ```bash
-docker-compose down -v; docker-compose build;docker-compose up
+docker-compose down -v --remove-orphans; \
+docker-compose --profile production build; \
+docker-compose --profile production up;
 ```
+
+2. run containers in develop mode.
+```bash
+docker-compose down -v --remove-orphans; \
+docker-compose -f docker-compose-develop.yml down -v --remove-orphans; \
+docker-compose -f docker-compose-develop.yml --profile develop build; \
+docker-compose -f docker-compose-develop.yml --profile develop up;
+```
+
+3. clean up. run this if you are facing network <id> not found.
+```bash
+docker-compose down -v --remove-orphans; \
+docker-compose -f docker-compose-develop.yml down -v --remove-orphans;
+```
+
 See spec/openapi.yml to test all the API's locally.
 
 ## How to enter postgres container for debuggging?
@@ -41,7 +61,27 @@ notes-api_6:8000 --> |"DB connection" | notes-db:5432
 
 ## uWSGI architecture
 
+```mermaid
+graph LR
 
+client -->|"http without SSL certs"| nginx-load-balancer:80 
+nginx-load-balancer:80 --> |"HTTP/"| uWSGI-middleware:8000
+
+subgraph uWSGI running in pre-fork mode
+uWSGI-middleware:8000 --> |"starts"| master-process
+master-process --> |"loads FLASK app"| notes-api:8000
+master-process --> |"os.fork() / spin up 5 child processes"| workers-processes
+worker-1 --> master-process
+worker-2 --> master-process
+worker-3 --> master-process
+worker-4 --> master-process
+worker-5 --> master-process
+end
+
+subgraph sqlalchemy
+TBD
+end
+```
 
 Libraries used 
 1. Flask-Restful lib

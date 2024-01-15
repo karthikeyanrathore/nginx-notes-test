@@ -5,7 +5,7 @@ info:
   description: API for handling user authentication and notes
 
 paths:
-  /auth/signup:
+  /api/auth/signup:
     post:
       summary: Register a new user
       requestBody:
@@ -25,7 +25,7 @@ paths:
         '404':
           description: Invalid request or missing JSON inputs
 
-  /auth/login:
+  /api/auth/login:
     post:
       summary: Log in a user and get an access token
       requestBody:
@@ -45,7 +45,7 @@ paths:
         '401':
           description: Invalid username, password, or missing information
 
-  /notes:
+  /api/notes:
     get:
       summary: Get user's notes
       responses:
@@ -71,7 +71,7 @@ paths:
         '401':
           description: Access token invalid or expired
 
-  /note/{id}:
+  /api/note/{id}:
     get:
       summary: Get a specific note by ID
       parameters:
@@ -129,7 +129,7 @@ paths:
         '401':
           description: Access token invalid or expired
 
-  /notes/{id}/share:
+  /api/notes/{id}/share:
     post:
       summary: Share a note with another user
       parameters:
@@ -155,7 +155,7 @@ paths:
         '401':
           description: Access token invalid or expired
 
-  /search:
+  /api/search:
     get:
       summary: Search for notes based on a query
       parameters:

@@ -18,10 +18,11 @@ services:
       - notes-net
     # ports:
     #   - "5432:5432"
-
-  notes-api:
+  
+  notes-api-develop:
     # container_name: notes-api
-    profiles: [production]
+    hostname: notes-api
+    profiles: [develop]
     build:
       context: .
       dockerfile: Dockerfile
@@ -34,11 +35,8 @@ services:
     restart: unless-stopped
     networks:
       - notes-net
-    deploy:
-      mode: replicated
-      replicas: 6
     ports:
-      - "8000-9007:8000"
+      - "8000:8000"
 
   nginx-performer:
     container_name: nginx-performer

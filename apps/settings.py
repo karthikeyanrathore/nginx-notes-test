@@ -12,4 +12,4 @@ SQLALCHEMY_DATABASE_URI = sqlalchemy.engine.url.URL.create(
     database="postgres",
 )
 
-JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "abcbbcbcbc")
+JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", None)
