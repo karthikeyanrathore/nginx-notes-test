@@ -2,7 +2,8 @@
 
 Aim of the project
 
-- test and evaluate performance of services like memory, cpu usage using various tools like grafana, prometheus.
+- test and evaluate performance of services like memory, cpu usage using various tools like grafana, prometheus, locust.
+    - base line performance of app.
 - understand uWSGI architecture.
 - understant Nginx architecture
 - implement multi-processing(CPU bound task)/threading (IO bound task) APIs.
