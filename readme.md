@@ -1,7 +1,6 @@
 ## Nginx Notes API's
 
-Notes Restful API's hosted on nginx server.
-
+Notes Restful API's. Aim of the project is to evaluate performance of flask app when integrated with different services like nginx, uWSGI, etc. 
 
 ## How to run application?
 
@@ -87,13 +86,6 @@ subgraph sqlalchemy
 TBD
 end
 ```
-
-Libraries used 
-1. Flask-Restful lib
-2. gunicorn
-3. postgresQL
-4. nginx
-5. docker-compose
 
 
 ## core features
