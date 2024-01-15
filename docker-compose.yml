@@ -19,8 +19,8 @@ services:
     # ports:
     #   - "5432:5432"
 
-  notes-api:
-    # container_name: notes-api
+  notes-api-prod:
+    hostname: notes-api
     profiles: [production]
     build:
       context: .
