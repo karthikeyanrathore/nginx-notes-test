@@ -32,6 +32,11 @@ docker-compose -f docker-compose-develop.yml down -v --remove-orphans;
 
 See spec/openapi.yml to test all the API's locally.
 
+## How to develop app using [compose watch](https://docs.docker.com/compose/file-watch/#sync--restart)?
+```bash
+docker-compose -f docker-compose-develop.yml --profile develop  watch
+```
+
 ## How to enter postgres container for debuggging?
 
 ```bash
