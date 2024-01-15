@@ -1,6 +1,6 @@
 ## Nginx Notes API's
 
-Notes Restful API's. Aim of the project is to evaluate performance of flask app when integrated with different services like nginx, uWSGI, etc. 
+Aim of the project is to evaluate performance of flask app when integrated with different services like nginx, uWSGI, etc. 
 
 ## How to run application?
 
