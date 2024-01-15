@@ -7,7 +7,7 @@ Aim of the project
 - implement multi-processing(CPU bound task)/threading (IO bound task) APIs.
 - understand [Dismissing Python Garbage Collection at Instagram](https://instagram-engineering.com/dismissing-python-garbage-collection-at-instagram-4dca40b29172)
 - understand goroutines and try it integrate it with flask app.
-- kubernetes
+- kubernetes to manage containers
 
 ## How to run application?
 
