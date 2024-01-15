@@ -4,6 +4,7 @@ Aim of the project
 
 - test and evaluate performance of services like memory, cpu usage using various tools like grafana, prometheus.
 - understand uWSGI architecture.
+- understant Nginx architecture
 - implement multi-processing(CPU bound task)/threading (IO bound task) APIs.
 - understand [Dismissing Python Garbage Collection at Instagram](https://instagram-engineering.com/dismissing-python-garbage-collection-at-instagram-4dca40b29172)
 - understand goroutines and try it integrate it with flask app.
