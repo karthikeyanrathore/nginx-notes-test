@@ -27,6 +27,13 @@ def create_app():
     # https://uwsgi-docs.readthedocs.io/en/latest/articles/TheArtOfGracefulReloading.html#preforking-vs-lazy-apps-vs-lazy
     # https://stackoverflow.com/questions/41734740/minimal-example-of-uwsgis-shared-memory
 
+
+    # Ok i did some more research.
+    # https://stackoverflow.com/questions/69396898/trying-to-figure-out-uwsgi-thread-workers-configuration
+    # https://uwsgi-docs.readthedocs.io/en/latest/ThingsToKnow.html
+    # https://www.reddit.com/r/Python/comments/4s40ge/understanding_uwsgi_threads_processes_and_gil/?rdt=36855
+    # https://www.bloomberg.com/company/stories/configuring-uwsgi-production-deployment/
+
     app.url_map.strict_slashes = False
     
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -64,8 +71,8 @@ def create_app():
 
     @app.before_request
     def flaskg_db():
-        print ("Ok - [LOG] worker %d is making request." % uwsgi.worker_id())
-        print (f"Ok - [LOG] DB connection pool: {db.engine.pool.status()}")
+        # print ("Ok - [LOG] worker %d is making request." % uwsgi.worker_id())
+        # print (f"Ok - [LOG] DB connection pool: {db.engine.pool.status()}")
         g.db = db
 
     @app.after_request
@@ -79,7 +86,8 @@ def create_app():
     from uwsgidecorators import postfork, uwsgi
     @postfork
     def fork_caller():
-        print("Ok - [LOG] worker %d is up!" % uwsgi.worker_id())
+        pass
+        # print("Ok - [LOG] worker %d is up!" % uwsgi.worker_id())
 
     if bool(settings.JWT_SECRET_KEY) is False:
         print("[WARNING] app JWT_SECRET_KEY is not set.")
