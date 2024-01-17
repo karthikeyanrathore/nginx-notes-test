@@ -71,7 +71,7 @@ paths:
         '401':
           description: Access token invalid or expired
 
-  /api/note/{id}:
+  /api/notes/{id}:
     get:
       summary: Get a specific note by ID
       parameters:
