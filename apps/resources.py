@@ -143,7 +143,8 @@ class ShareNote(Resource):
         if not note:
             return response(404, "Note not found.")
         print(f"Ok - Sharing <note:{note.id}> with {another_user.name}")
-        note = Note(
+        write_notesdb = models.Notes
+        note = write_notesdb(
             message=note.message,
             authenticated_user=another_user
         )
