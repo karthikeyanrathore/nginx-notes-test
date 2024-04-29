@@ -2,6 +2,7 @@
 from flask import Flask, jsonify, g
 from apps.views import auth_bp, note_bp
 from apps.database import db
+import os
 import flask
 from sqlalchemy.pool import NullPool
 
@@ -92,6 +93,11 @@ def create_app():
     if bool(settings.JWT_SECRET_KEY) is False:
         print("[WARNING] app JWT_SECRET_KEY is not set.")
 
+    version = (float(os.environ.get('API_VERSION', 0)))
+    if not bool(version):
+        print("[ERROR] please pass API_VERSION environment to docker cmd.")
+    else:
+        print(f"Ok - [INFO] API_VERSION is set to:{version}")
     return app
 
 
