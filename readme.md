@@ -17,7 +17,7 @@ Aim of the project
 
 If you face any issue please write me karthikerathore@gmail.com
 
-1. run containers in production mode.
+1. run containers in production mode. (fails to run on mac silicon, run app in develop mode)
 ```bash
 docker-compose down -v --remove-orphans; \
 docker-compose --profile production build; \
