@@ -1,8 +1,13 @@
 #!/bin/bash
 
-set -e
+set -ex
 
 VERSION=$1
+if [ -z $VERSION ]; then
+    echo "error, need version arg"
+    exit 1
+fi
+
 
 COMPOSE_FILE="docker-compose-offline.yml"
 COMPOSE_CMD="docker compose"
@@ -24,9 +29,14 @@ spin_up_services(){
 }
 
 tag_images(){
-    docker tag $IMAGE_INGRESS  offline.registry/nginx-performer:$VERSION && echo offline.registry/nginx-performer:$VERSION
-    docker tag $IMAGE_API      offline.registry/notes-api:$VERSION && echo offline.registry/notes-api:$VERSION
-    docker tag $IMAGE_DB       offline.registry/notes-db$VERSION && echo offline.registry/notes-db$VERSION
+    docker tag $IMAGE_INGRESS offline.registry/nginx-performer:$VERSION && \
+    echo offline.registry/nginx-performer:$VERSION
+    
+    docker tag $IMAGE_API offline.registry/notes-api:$VERSION && \
+    echo offline.registry/notes-api:$VERSION
+    
+    docker tag $IMAGE_DB offline.registry/notes-db$VERSION && \
+    echo offline.registry/notes-db$VERSION
 }
 
 
