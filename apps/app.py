@@ -83,6 +83,7 @@ def create_app():
         print (f"Ok - [LOG] CONTAINER IP: {ip_address}")
         print (f"Ok - [LOG] status code: {response.status_code}")
         return response
+
     # app.run(debug=1)
     from uwsgidecorators import postfork, uwsgi
     @postfork
@@ -97,7 +98,12 @@ def create_app():
     if not bool(version):
         print("[ERROR] please pass API_VERSION environment to docker cmd.")
     else:
-        print(f"Ok - [INFO] API_VERSION is set to:{version}")
+        print(f"Ok - [INFO] API_VERSION is set to: {version}")
+    
+    @app.route("/version")
+    def app_version():
+        msg = {"version": version}
+        return msg
     return app
 
 
