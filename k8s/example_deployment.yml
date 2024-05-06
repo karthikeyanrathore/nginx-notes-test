@@ -1,0 +1,30 @@
+---
+
+apiVersion: apps/v1
+
+kind: Deployment
+
+metadata:
+  name: nginx-deployment
+
+
+spec:
+  # replica set
+  selector:
+    matchLabels:  
+      app: performer
+  
+  replicas: 2
+  # scale up and down template
+  template:
+    metadata:
+      labels: 
+        app: performer
+  
+    # pods
+    spec:
+      containers:
+      - name: performer
+        image: nginx:1.25.3-alpine
+        ports:
+        - containerPort: 80

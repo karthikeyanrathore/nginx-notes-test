@@ -51,7 +51,7 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - notes-db
+      - notes-db 
 
 
 volumes:

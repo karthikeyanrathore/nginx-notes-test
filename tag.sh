@@ -34,8 +34,8 @@ build_up_services(){
 spin_up_services(){
     docker tag $IMAGE_API pc.registry/notes-api:$VERSION
     # might have to pull nginx, postgres images if not present locally.
-    $COMPOSE_CMD -f $IMAGE_COMPOSE_FILE build; \
-    $COMPOSE_CMD -f $IMAGE_COMPOSE_FILE up
+    # $COMPOSE_CMD -f $IMAGE_COMPOSE_FILE build; \
+    # $COMPOSE_CMD -f $IMAGE_COMPOSE_FILE up
 }
 
 
