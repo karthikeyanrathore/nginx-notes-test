@@ -5,6 +5,7 @@ from apps.resources import (
     Note,
     ShareNote,
     SearchNote,
+    RawNote,
 )
 
 from flask import Blueprint
@@ -20,6 +21,7 @@ auth_api.add_resource(RegisterAuth, "/auth/signup")
 auth_api.add_resource(LoginAuth, "/auth/login")
 
 note_api.add_resource(Notes, "/notes")
+note_api.add_resource(RawNote, "/notes/<int:id>/raw")
 note_api.add_resource(Note, "/notes/<int:id>")
 note_api.add_resource(ShareNote, "/notes/<int:id>/share")
 note_api.add_resource(SearchNote, "/search")

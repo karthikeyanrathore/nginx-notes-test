@@ -5,6 +5,7 @@ from apps.database import db
 import os
 import flask
 from sqlalchemy.pool import NullPool
+from flask_cors import CORS
 
 
 import apps.settings as settings
@@ -55,7 +56,9 @@ def create_app():
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"poolclass": NullPool}
     # app.config["SQLALCHEMY_ECHO"] = True
     db.init_app(app)
-    
+    # cors enabled for frontend.
+    CORS(app)
+
     with app.app_context():
         print("Ok - [LOG] creating tables...")
         db.create_all()

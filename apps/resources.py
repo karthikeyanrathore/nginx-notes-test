@@ -15,7 +15,7 @@ from apps.settings import JWT_SECRET_KEY
 
 def response(status_code, message):
     if status_code != 200:
-        return jsonify({"error occurred:> ": f"{message}"}, status_code)
+        return jsonify({"error": f"{message}"}, status_code)
     return make_response(jsonify({"data": message}), 200)
 
 
@@ -91,7 +91,7 @@ class Notes(Resource):
             ))
         ret = []
         for note in auth.notes:
-            ret.append(note.message)
+            ret.append({"message": note.message, "note_id": note.id})
         return response(200, {"notes" : ret})
     
     @is_token_valid
@@ -169,3 +169,11 @@ class SearchNote(Resource):
         else:
             ret = note.serialize()
         return response(200, {"note": ret})
+    
+class RawNote(Resource):
+    def get(self, id):
+        note = g.db.session.query(models.Notes).filter_by(id=id).one_or_none()
+        if not note:
+            return response(404, "Note not found.")
+        return response(200, {"note": note.message})
+    

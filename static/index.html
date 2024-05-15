@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bootstrap Example</title>
+    <!-- Link Bootstrap CSS -->
+    <link
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Custom CSS -->
+    <style>
+        .dot {
+            height: 15px;
+            width: 15px;
+            background-color: red;
+            border-radius: 100%;
+            display: inline-block;
+            margin-left: 80px;
+        }
+
+        small {
+            font-size: 1.3rem;
+        }
+        .online {
+            background-color: green 
+        }
+        p {
+            font-size: 1.3rem;
+        }
+    </style>
+
+  </head>
+  <body>
+    <!-- Bootstrap JavaScript Libraries (Optional, for some components) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <div class="container-xl">
+        <h1 class="display-4 d-inline-block mt-2">
+            Nginx notes server
+            <span id="span_id" class="dot"></span>
+            <small id="connect">disconnected</small>
+            <!-- Inline Header -->
+        </h1>
+        <small id="Domain" style="position: absolute; display: inline-block;" class="text-muted ml-5 pl-5 mt-2"></small>
+
+      <hr />
+      
+      <form class="form-inline">
+        <div class="form-group mx-sm-3 mb-2">
+          <label for="inputPassword2" class="sr-only">Password</label>
+          <input
+            type="password"
+            class="form-control"
+            id="accesstoken"
+            placeholder="Access Token"
+          />
+        </div>
+        <button type="button" onclick="dostuff();" class="btn btn-primary mb-2">
+          Send
+        </button>
+        <!-- <button type="button" onclick="#" class="btn btn-primary mb-2 mx-2">
+            Refresh
+        </button> -->
+      </form>
+
+      <br />
+      <div id="errorAlert" class="alert alert-danger d-none" role="alert"></div>
+      <div id="info-message" class="alert alert-info d-none" role="alert"></div>
+      <ul id="links-list" class="list-group list-group-flush"></ul>
+    </div>
+
+    <script type="text/javascript" src="script.js"></script>
+  </body>
+</html>
+
