@@ -15,7 +15,7 @@ from apps.settings import JWT_SECRET_KEY
 
 def response(status_code, message):
     if status_code != 200:
-        return jsonify({"error": f"{message}"}, status_code)
+        return make_response(jsonify({"error": f"{message}"}), status_code)
     return make_response(jsonify({"data": message}), 200)
 
 
@@ -48,7 +48,7 @@ class RegisterAuth(Resource):
         username = request_data["username"]
         password = request_data["password"]
         if g.db.session.query(models.Auth).filter_by(name=username).one_or_none():
-            return response(200, "Username already exists. Please help to choose different username.")
+            return response(403, "Username already exists. Please help to choose different username.")
         authdata = models.Auth(name=username, password=password)
         g.db.session.add(authdata)
         g.db.session.commit()
