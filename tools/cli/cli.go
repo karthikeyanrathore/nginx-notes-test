@@ -10,7 +10,14 @@ import (
 	"encoding/json"
 	"bytes"
 	"io/ioutil"
+	_ "strconv"
+	"path/filepath"
 )
+
+var REGISTER_ENDPOINT string = "/api/auth/signup"
+var LOGIN_ENDPOINT string = "/api/auth/login"
+
+// go API example: https://github.com/djotaku/spacetraders_go/blob/1ae00e1de58caa0701c1c271aad4d22dcd18e95d/spacetradersapi/api.go
 
 type Options struct {
 
@@ -22,21 +29,35 @@ type Options struct {
 	Address   string  `long:"address" description:"nginx server address"`
 }
 
+type DataWrapper struct {
+	Data any `json:"data`
+}
+
+type ResponseAfterLogin struct {
+	AccessToken string  `json:"access_token"`
+	UserID int 			`json:"user_id`
+	Username string		`json:"username"`
+}
 
 func cmd_error(err error){
 	fmt.Println("[ERROR]", err)
 	os.Exit(1)
 }
 
-func RegisterNginxAccount(opts *Options) {
-
-	URL, err := url.Parse(opts.Address)
+func ParseAddress(addr string) string {
+	URL, err := url.Parse(addr)
 	if err != nil {
 		cmd_error(err)
 	}
 	// fmt.Println("Ok parsed address", URL.Host, URL.Scheme)
 	address := URL.Scheme + "://" + URL.Host
-	_, err = http.Head(address)
+	return address
+}
+
+func RegisterNginxAccount(opts *Options) {
+
+	address := ParseAddress(opts.Address)
+	_, err := http.Head(address)
 	if err != nil {
 		cmd_error(err)
 	}
@@ -47,7 +68,7 @@ func RegisterNginxAccount(opts *Options) {
 		cmd_error(err)
 	}
 
-	registerURI := address + "/api/auth/signup"
+	registerURI := address + REGISTER_ENDPOINT
 	resp, err := http.Post(
 		registerURI,
 		"application/json",
@@ -76,6 +97,64 @@ func RegisterNginxAccount(opts *Options) {
 	}
 }
 
+func PublishNotesFromDir(opts *Options) {
+	addr := ParseAddress(opts.Address)
+	payload_bytes, _ := json.Marshal(map[string]string{"username": opts.Username, "password": opts.Password})
+	LoginURI := addr + LOGIN_ENDPOINT
+	resp, err := http.Post(
+		LoginURI,
+		"application/json",
+		// https://www.reddit.com/r/golang/comments/92mm9k/what_exactly_is_bytesbuffer/
+		// bytes.NewBuffer
+		// it’s an adaptor that lets you use a byte slice as an io.Writer and turn strings/byte slices into io.Readers.
+		bytes.NewBuffer(payload_bytes), // io.Reader taken as input by http.Post
+	)
+	if err != nil {
+		cmd_error(err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		cmd_error(errors.New("could not login. check logs!"))
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		cmd_error(err)
+	}
+
+	// message := ResponseAfterLogin{}
+	message := &ResponseAfterLogin{}
+	if err = json.Unmarshal(body, &DataWrapper{message}); err != nil {
+		cmd_error(err)
+	}
+	// fmt.Println(string(body))
+	// fmt.Println(message.AccessToken)
+
+	file_notes, err := ioutil.ReadDir(opts.PathDir)
+	if err != nil {
+		cmd_error(err)
+	}
+	NoteCount := (len(file_notes))
+	fmt.Println(fmt.Sprintf("[INFO] %d notes present in directory", NoteCount))
+	for  _, file_note := range file_notes[:3] {
+		fullpath := filepath.Join(opts.PathDir, file_note.Name())
+		dat, err := (os.ReadFile(fullpath))
+		if err != nil {
+			cmd_error(err)
+		}
+		// TODO: find a way to ignore empty file content
+		file_content := string(dat)
+		// fmt.Println(fullpath)
+		fmt.Println(file_content)
+		// // fmt.Println(datstr)
+		// fmt.Println(file_note.Size())
+	}	
+
+}
+
+// func Push(note string) bool {
+// 	pass
+// }
+
 func Run() {
 
 	fmt.Println(" ***CLI*** \n")
@@ -95,16 +174,25 @@ func Run() {
 
 
 	var opts = Options{}
-
 	_, err := flags.ParseArgs(&opts, os.Args)
 
 	if (err != nil){
-		fmt.Println(err)
-		os.Exit(1)
+		cmd_error(err)
+	}
+	
+	if (opts.Register) {
+		if opts.Username == "" || opts.Password == "" {
+			cmd_error(errors.New("missing username/password."))
+		}
+		RegisterNginxAccount(&opts)
 	}
 
-	if (opts.Register) {
-		RegisterNginxAccount(&opts)
+	if (opts.Publish) {
+		// publish notes from local dir to server.
+		if opts.Username == "" || opts.Password == "" || opts.PathDir == "" {
+			cmd_error(errors.New("missing username/password/path directory."))
+		}
+		PublishNotesFromDir(&opts)
 	}
 
 }
@@ -114,4 +202,10 @@ go build && ./tools --address http://0.0.0.0:80/  \
 	--username ram  \
 	--password ram  \
 	--register
+
+go build && ./tools --address http://0.0.0.0:80/  \
+	--username ram  \
+	--password ram  \
+	--path_dir /home/vagrant/notes \
+	--publish
 */
