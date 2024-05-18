@@ -1,3 +1,8 @@
 FROM nginx:1.25.3-alpine
 
 COPY nginx.conf /etc/nginx/nginx.conf
+
+COPY static/index.html /usr/share/nginx/html
+COPY static/script.js /usr/share/nginx/html
+
+# may need to make small changes as docker caches old files.

@@ -1,17 +1,18 @@
 
 const NGINX_SERVER_HOST = "http://0.0.0.0"
 const NGINX_SERVER_PORT = 80
+const ENDPOINT_LOCATION  = "backend"
 
 var API_VERSION = null
 
 function dostuff() {
-    var AccessToken = document.getElementById("accesstoken").value;
-    ApiGetNotes(AccessToken);
-    console.log("kjasdgj");
+    ApiGetNotes();
 }
 
-function ApiGetNotes(AccessToken) {
-    const URI = `${NGINX_SERVER_HOST}:${NGINX_SERVER_PORT}/api/notes`
+function ApiGetNotes() {
+    // maybe save it somewhere temp cache
+    AccessToken = document.getElementById("accesstoken").value;
+    const URI = `${NGINX_SERVER_HOST}:${NGINX_SERVER_PORT}/${ENDPOINT_LOCATION}/api/notes`
     fetch(URI, {
         headers: {
             Authorization: "Bearer " + AccessToken,
@@ -26,14 +27,14 @@ function ApiGetNotes(AccessToken) {
                 errorbtn.classList.add("d-none");
                 ShowMe(ret);
             } else {
-                console.log(ret);
                 var errorbtn = document.getElementById("errorAlert");
                 errorbtn.classList.remove("d-none");
                 errorbtn.classList.add("show");
-                errorbtn.innerHTML = ret[0]["error"];
+                errorbtn.innerHTML = ret.error
             }
         });
 }
+
 
 function ShowMe(res) {
     console.log("ShowMe");
@@ -58,7 +59,7 @@ function ShowMe(res) {
     data.forEach((x) => {
         const linkElement = document.createElement("a");
         linkElement.target = "_blank";
-        linkElement.href = `${NGINX_SERVER_HOST}:${NGINX_SERVER_PORT}/api/notes/${x.note_id}/raw`;
+        linkElement.href = `${NGINX_SERVER_HOST}:${NGINX_SERVER_PORT}/${ENDPOINT_LOCATION}/api/notes/${x.note_id}/raw`;
         linkElement.textContent = x.message.substring(
             0,
             Math.min(100, x.message.length)
@@ -82,7 +83,7 @@ function OpenRawNote(note_id) {
 function ServerHealthCheck() {
     var span_id = document.getElementById("span_id")
     var connect = document.getElementById("connect")
-    fetch(`${NGINX_SERVER_HOST}:${NGINX_SERVER_PORT}/version`).then(
+    fetch(`${NGINX_SERVER_HOST}:${NGINX_SERVER_PORT}/${ENDPOINT_LOCATION}/version`).then(
         response => {
            
             if (response.ok) {

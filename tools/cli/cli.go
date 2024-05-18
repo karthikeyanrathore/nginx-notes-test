@@ -14,14 +14,15 @@ import (
 	"path/filepath"
 )
 
-var REGISTER_ENDPOINT string = "/api/auth/signup"
-var LOGIN_ENDPOINT string = "/api/auth/login"
+var REGISTER_ENDPOINT string = "/backend/api/auth/signup"
+var LOGIN_ENDPOINT string = "/backend/api/auth/login"
+var PUSH_NOTE_ENDPOINT string = "/backend/api/notes/"
 
 // go API example: https://github.com/djotaku/spacetraders_go/blob/1ae00e1de58caa0701c1c271aad4d22dcd18e95d/spacetradersapi/api.go
 
 type Options struct {
 
-	PathDir   string  `short:"d" long:"path_dir" description:"path to notes director"`
+	PathDir   string  `short:"d"  long:"path_dir" description:"path to notes director"`
 	Username  string  `short:"u"  long:"username" description:"username to signup/login"`
 	Password  string  `short:"p"  long:"password" description:"password to signup/login"`
 	Register  bool    `long:"register" description:"signup an account"`
@@ -133,9 +134,11 @@ func PublishNotesFromDir(opts *Options) {
 	if err != nil {
 		cmd_error(err)
 	}
+	fmt.Println("[INFO] Temporary Access token: ", message.AccessToken)
 	NoteCount := (len(file_notes))
 	fmt.Println(fmt.Sprintf("[INFO] %d notes present in directory", NoteCount))
-	for  _, file_note := range file_notes[:3] {
+	for i, file_note := range file_notes[:1] {
+		fmt.Println(i)
 		fullpath := filepath.Join(opts.PathDir, file_note.Name())
 		dat, err := (os.ReadFile(fullpath))
 		if err != nil {
@@ -144,16 +147,49 @@ func PublishNotesFromDir(opts *Options) {
 		// TODO: find a way to ignore empty file content
 		file_content := string(dat)
 		// fmt.Println(fullpath)
-		fmt.Println(file_content)
+		// fmt.Println(file_content)
 		// // fmt.Println(datstr)
 		// fmt.Println(file_note.Size())
+		Push(file_content, message.AccessToken, opts)
+		i += 1 
 	}	
 
 }
 
-// func Push(note string) bool {
-// 	pass
-// }
+func Push(note string, access_token string, opts *Options)  {
+	addr := ParseAddress(opts.Address)
+	payload_bytes, _ := json.Marshal(map[string]string{"note": note})
+	PushNoteURI := addr + PUSH_NOTE_ENDPOINT
+
+	// https://pkg.go.dev/net/http#Post
+	// To set custom headers, use NewRequest and DefaultClient.Do.
+	nr, err := http.NewRequest(
+		"POST", 
+		PushNoteURI, 
+		bytes.NewBuffer(payload_bytes),
+	)
+	if err != nil {
+		cmd_error(err)
+	}
+	nr.Header.Add("Content-Type", "application/json")
+	nr.Header.Add("Authorization", fmt.Sprintf("Bearer %s", access_token))
+	
+	client := &http.Client{}
+	resp, err := client.Do(nr)
+	if err != nil {
+		cmd_error(err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		cmd_error(errors.New("something bad happened. check logs!"))
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		cmd_error(err)
+	}
+	fmt.Println(body)
+}
 
 func Run() {
 
