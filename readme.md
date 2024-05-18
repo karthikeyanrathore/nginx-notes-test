@@ -40,6 +40,26 @@ docker-compose -f docker-compose-develop.yml down -v --remove-orphans;
 
 See spec/openapi.yml to test all the API's locally.
 
+## How to use tools ?
+
+0. first you gotta register yourself.
+```bash
+go build && ./tools --address http://0.0.0.0:80/  \
+	--username karthikeyan  \
+	--password karthikeyan  \
+	--register
+```
+
+1. After that you can publish your notes from anywhere.
+```bash
+go build && ./tools --address http://0.0.0.0:80/  \
+	--username karthikeyan  \
+	--password karthikeyan  \
+	--path_dir /home/vagrant/notes \
+	--publish
+```
+
+
 ## How to develop app using [compose watch](https://docs.docker.com/compose/file-watch/#sync--restart)?
 ```bash
 docker-compose -f docker-compose-develop.yml --profile develop  watch

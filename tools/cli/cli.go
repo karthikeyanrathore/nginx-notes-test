@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	_ "strconv"
 	"path/filepath"
+	"time"
 )
 
 var REGISTER_ENDPOINT string = "/backend/api/auth/signup"
@@ -115,7 +116,7 @@ func PublishNotesFromDir(opts *Options) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		cmd_error(errors.New("could not login. check logs!"))
+		cmd_error(errors.New("could not login, may need to register first. check logs!"))
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -134,10 +135,9 @@ func PublishNotesFromDir(opts *Options) {
 	if err != nil {
 		cmd_error(err)
 	}
-	fmt.Println("[INFO] Temporary Access token: ", message.AccessToken)
 	NoteCount := (len(file_notes))
 	fmt.Println(fmt.Sprintf("[INFO] %d notes present in directory", NoteCount))
-	for i, file_note := range file_notes[:1] {
+	for i, file_note := range file_notes {
 		fmt.Println(i)
 		fullpath := filepath.Join(opts.PathDir, file_note.Name())
 		dat, err := (os.ReadFile(fullpath))
@@ -146,13 +146,14 @@ func PublishNotesFromDir(opts *Options) {
 		}
 		// TODO: find a way to ignore empty file content
 		file_content := string(dat)
-		// fmt.Println(fullpath)
-		// fmt.Println(file_content)
-		// // fmt.Println(datstr)
-		// fmt.Println(file_note.Size())
 		Push(file_content, message.AccessToken, opts)
+		if i % 10 == 0 {
+			fmt.Println("wait .. 2sec")
+			time.Sleep(2 * time.Second)
+		}
 		i += 1 
-	}	
+	}
+	fmt.Println("[INFO] Temporary Access token: ", message.AccessToken)
 
 }
 
@@ -176,12 +177,14 @@ func Push(note string, access_token string, opts *Options)  {
 	
 	client := &http.Client{}
 	resp, err := client.Do(nr)
+	// fmt.Println(time.Second)
 	if err != nil {
 		cmd_error(err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
+		fmt.Println(resp.StatusCode)
 		cmd_error(errors.New("something bad happened. check logs!"))
 	}
 	body, err := ioutil.ReadAll(resp.Body)
