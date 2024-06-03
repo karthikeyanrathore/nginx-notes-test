@@ -232,7 +232,7 @@ func PublishNotesFromDir(opts *Options) {
 		i += 1 
 	}
 	fmt.Println("[INFO] Temporary Access token: ", message.AccessToken)
-
+	
 }
 
 func Push(note string, access_token string, opts *Options)  {
