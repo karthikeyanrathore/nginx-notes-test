@@ -13,6 +13,7 @@ import (
 	_ "strconv"
 	"path/filepath"
 	"time"
+	"os/exec"	
 )
 
 var REGISTER_ENDPOINT string = "/backend/api/auth/signup"
@@ -29,17 +30,28 @@ type Options struct {
 	Register  bool    `long:"register" description:"signup an account"`
 	Publish   bool    `long:"publish" description:"publish notes to server"`
 	Address   string  `long:"address" description:"nginx server address"`
+	AccessToken string `long:"accesstoken" description:"access token to view notes"`
 }
-
 type DataWrapper struct {
 	Data any `json:"data`
 }
-
 type ResponseAfterLogin struct {
 	AccessToken string  `json:"access_token"`
 	UserID int 			`json:"user_id`
 	Username string		`json:"username"`
 }
+
+type JsonData struct {
+	Data JsonNotes `json:"data"`
+}
+type JsonNotes struct {
+	Notes []NoteInfo `json:"notes"`
+}
+type NoteInfo struct {
+	Message string `json:"message"` 
+	NoteId  int    `json:"note_id"`
+}
+
 
 func cmd_error(err error){
 	fmt.Println("[ERROR]", err)
@@ -99,6 +111,59 @@ func RegisterNginxAccount(opts *Options) {
 	}
 }
 
+func get_prev_notes(opts *Options) ([]NoteInfo) {
+	fmt.Println(opts.Address)
+
+	addr := ParseAddress(opts.Address)
+	GetNotesURI := addr + PUSH_NOTE_ENDPOINT
+	nr, err := http.NewRequest("GET", GetNotesURI, nil)
+	if err != nil {
+		cmd_error(err)
+	}
+	nr.Header.Add("Content-Type", "application/json")
+	nr.Header.Add("Authorization", fmt.Sprintf("Bearer %s", opts.AccessToken))
+
+	client := &http.Client{}
+	resp, err := client.Do(nr)
+	// fmt.Println(time.Second)
+	if err != nil {
+		cmd_error(err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		fmt.Println(resp.StatusCode)
+		cmd_error(errors.New("something bad happened. check logs!"))
+	}
+	body, _ := ioutil.ReadAll(resp.Body)
+
+	var jd JsonData;
+	err = json.Unmarshal(body, &jd)
+	if err != nil {
+		cmd_error(err)
+	}
+	// fmt.Println(len(jd.Data.Notes))
+	return jd.Data.Notes
+}
+
+func NotesDiff(local_notes []string, prev_notes []string) []string{
+	diff_map := make(map[string]bool)
+	for _, n := range local_notes {
+		diff_map[n] = true
+	}
+	for _, n := range prev_notes {
+		diff_map[n] = false
+	}
+	var result []string
+    for note_msg , val := range diff_map {
+		if val {
+			result = append(result, note_msg)
+		}
+    }
+	fmt.Println(fmt.Sprintf(" %d notes to be published", len(result)))
+	return result
+}
+
 func PublishNotesFromDir(opts *Options) {
 	addr := ParseAddress(opts.Address)
 	payload_bytes, _ := json.Marshal(map[string]string{"username": opts.Username, "password": opts.Password})
@@ -130,25 +195,38 @@ func PublishNotesFromDir(opts *Options) {
 	}
 	// fmt.Println(string(body))
 	// fmt.Println(message.AccessToken)
-
 	file_notes, err := ioutil.ReadDir(opts.PathDir)
 	if err != nil {
 		cmd_error(err)
 	}
 	NoteCount := (len(file_notes))
-	fmt.Println(fmt.Sprintf("[INFO] %d notes present in directory", NoteCount))
-	for i, file_note := range file_notes {
-		fmt.Println(i)
+	fmt.Println(fmt.Sprintf("[INFO] %d notes present in %s dir", NoteCount, opts.PathDir))
+	opts.AccessToken = message.AccessToken
+
+	prev_notes := get_prev_notes(opts)
+	
+	size_pn := (len(prev_notes))
+	prev_note_msg := make([]string, size_pn)
+	for i, prev := range prev_notes {
+		prev_note_msg[i] = prev.Message
+	}
+	// fmt.Println(prev_note_msg)
+
+	var notes_file[] string
+	for _, file_note := range file_notes {
 		fullpath := filepath.Join(opts.PathDir, file_note.Name())
 		dat, err := (os.ReadFile(fullpath))
 		if err != nil {
 			cmd_error(err)
 		}
-		// TODO: find a way to ignore empty file content
 		file_content := string(dat)
-		Push(file_content, message.AccessToken, opts)
+		notes_file = append(notes_file, file_content)
+	}
+	new_notes := NotesDiff(notes_file, prev_note_msg)
+	for i, file_note := range new_notes {
+		Push(file_note, message.AccessToken, opts)
 		if i % 10 == 0 {
-			fmt.Println("wait .. 2sec")
+			fmt.Println("[x] wait .. 2sec.")
 			time.Sleep(2 * time.Second)
 		}
 		i += 1 
@@ -187,15 +265,16 @@ func Push(note string, access_token string, opts *Options)  {
 		fmt.Println(resp.StatusCode)
 		cmd_error(errors.New("something bad happened. check logs!"))
 	}
-	body, err := ioutil.ReadAll(resp.Body)
+	_, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
 		cmd_error(err)
 	}
-	fmt.Println(body)
+	// fmt.Println(body)
 }
 
 func Run() {
 
+	fmt.Println(" ")
 	fmt.Println(" ***CLI*** \n")
 	/*
 	Take input of the following
@@ -232,19 +311,13 @@ func Run() {
 			cmd_error(errors.New("missing username/password/path directory."))
 		}
 		PublishNotesFromDir(&opts)
+		// fmt.Println(opts.Address)
+		cmd := exec.Command("xdg-open", opts.Address)
+		_, err := cmd.Output()
+		if err != nil {
+			fmt.Println("err:", err)
+		}
+		// fmt.Println(stdout)
 	}
 
 }
-
-/*
-go build && ./tools --address http://0.0.0.0:80/  \
-	--username ram  \
-	--password ram  \
-	--register
-
-go build && ./tools --address http://0.0.0.0:80/  \
-	--username ram  \
-	--password ram  \
-	--path_dir /home/vagrant/notes \
-	--publish
-*/
