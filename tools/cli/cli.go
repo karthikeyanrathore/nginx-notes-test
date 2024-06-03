@@ -1,19 +1,19 @@
 package cli
 
 import (
-	"fmt"
+	"bytes"
+	"encoding/json"
 	"errors"
-	"os"
+	"fmt"
 	"github.com/jessevdk/go-flags"
+	"io/ioutil"
 	"net/http"
 	"net/url"
-	"encoding/json"
-	"bytes"
-	"io/ioutil"
-	_ "strconv"
+	"os"
+	"os/exec"
 	"path/filepath"
+	_ "strconv"
 	"time"
-	"os/exec"	
 )
 
 var REGISTER_ENDPOINT string = "/backend/api/auth/signup"
@@ -23,22 +23,21 @@ var PUSH_NOTE_ENDPOINT string = "/backend/api/notes/"
 // go API example: https://github.com/djotaku/spacetraders_go/blob/1ae00e1de58caa0701c1c271aad4d22dcd18e95d/spacetradersapi/api.go
 
 type Options struct {
-
-	PathDir   string  `short:"d"  long:"path_dir" description:"path to notes director"`
-	Username  string  `short:"u"  long:"username" description:"username to signup/login"`
-	Password  string  `short:"p"  long:"password" description:"password to signup/login"`
-	Register  bool    `long:"register" description:"signup an account"`
-	Publish   bool    `long:"publish" description:"publish notes to server"`
-	Address   string  `long:"address" description:"nginx server address"`
+	PathDir     string `short:"d"  long:"path_dir" description:"path to notes director"`
+	Username    string `short:"u"  long:"username" description:"username to signup/login"`
+	Password    string `short:"p"  long:"password" description:"password to signup/login"`
+	Register    bool   `long:"register" description:"signup an account"`
+	Publish     bool   `long:"publish" description:"publish notes to server"`
+	Address     string `long:"address" description:"nginx server address"`
 	AccessToken string `long:"accesstoken" description:"access token to view notes"`
 }
 type DataWrapper struct {
 	Data any `json:"data`
 }
 type ResponseAfterLogin struct {
-	AccessToken string  `json:"access_token"`
-	UserID int 			`json:"user_id`
-	Username string		`json:"username"`
+	AccessToken string `json:"access_token"`
+	UserID      int    `json:"user_id`
+	Username    string `json:"username"`
 }
 
 type JsonData struct {
@@ -48,12 +47,11 @@ type JsonNotes struct {
 	Notes []NoteInfo `json:"notes"`
 }
 type NoteInfo struct {
-	Message string `json:"message"` 
+	Message string `json:"message"`
 	NoteId  int    `json:"note_id"`
 }
 
-
-func cmd_error(err error){
+func cmd_error(err error) {
 	fmt.Println("[ERROR]", err)
 	os.Exit(1)
 }
@@ -106,12 +104,12 @@ func RegisterNginxAccount(opts *Options) {
 	if err = json.Unmarshal(body, &message); err != nil {
 		cmd_error(err)
 	}
-	if (message["data"] == "success"){
+	if message["data"] == "success" {
 		fmt.Println("[INFO] Ok, account registered")
 	}
 }
 
-func get_prev_notes(opts *Options) ([]NoteInfo) {
+func get_prev_notes(opts *Options) []NoteInfo {
 	fmt.Println(opts.Address)
 
 	addr := ParseAddress(opts.Address)
@@ -137,7 +135,7 @@ func get_prev_notes(opts *Options) ([]NoteInfo) {
 	}
 	body, _ := ioutil.ReadAll(resp.Body)
 
-	var jd JsonData;
+	var jd JsonData
 	err = json.Unmarshal(body, &jd)
 	if err != nil {
 		cmd_error(err)
@@ -146,7 +144,7 @@ func get_prev_notes(opts *Options) ([]NoteInfo) {
 	return jd.Data.Notes
 }
 
-func NotesDiff(local_notes []string, prev_notes []string) []string{
+func NotesDiff(local_notes []string, prev_notes []string) []string {
 	diff_map := make(map[string]bool)
 	for _, n := range local_notes {
 		diff_map[n] = true
@@ -155,11 +153,11 @@ func NotesDiff(local_notes []string, prev_notes []string) []string{
 		diff_map[n] = false
 	}
 	var result []string
-    for note_msg , val := range diff_map {
+	for note_msg, val := range diff_map {
 		if val {
 			result = append(result, note_msg)
 		}
-    }
+	}
 	fmt.Println(fmt.Sprintf(" %d notes to be published", len(result)))
 	return result
 }
@@ -204,7 +202,7 @@ func PublishNotesFromDir(opts *Options) {
 	opts.AccessToken = message.AccessToken
 
 	prev_notes := get_prev_notes(opts)
-	
+
 	size_pn := (len(prev_notes))
 	prev_note_msg := make([]string, size_pn)
 	for i, prev := range prev_notes {
@@ -212,7 +210,7 @@ func PublishNotesFromDir(opts *Options) {
 	}
 	// fmt.Println(prev_note_msg)
 
-	var notes_file[] string
+	var notes_file []string
 	for _, file_note := range file_notes {
 		fullpath := filepath.Join(opts.PathDir, file_note.Name())
 		dat, err := (os.ReadFile(fullpath))
@@ -225,17 +223,17 @@ func PublishNotesFromDir(opts *Options) {
 	new_notes := NotesDiff(notes_file, prev_note_msg)
 	for i, file_note := range new_notes {
 		Push(file_note, message.AccessToken, opts)
-		if i % 10 == 0 {
+		if i%10 == 0 {
 			fmt.Println("[x] wait .. 2sec.")
 			time.Sleep(2 * time.Second)
 		}
-		i += 1 
+		i += 1
 	}
 	fmt.Println("[INFO] Temporary Access token: ", message.AccessToken)
-	
+
 }
 
-func Push(note string, access_token string, opts *Options)  {
+func Push(note string, access_token string, opts *Options) {
 	addr := ParseAddress(opts.Address)
 	payload_bytes, _ := json.Marshal(map[string]string{"note": note})
 	PushNoteURI := addr + PUSH_NOTE_ENDPOINT
@@ -243,8 +241,8 @@ func Push(note string, access_token string, opts *Options)  {
 	// https://pkg.go.dev/net/http#Post
 	// To set custom headers, use NewRequest and DefaultClient.Do.
 	nr, err := http.NewRequest(
-		"POST", 
-		PushNoteURI, 
+		"POST",
+		PushNoteURI,
 		bytes.NewBuffer(payload_bytes),
 	)
 	if err != nil {
@@ -252,7 +250,7 @@ func Push(note string, access_token string, opts *Options)  {
 	}
 	nr.Header.Add("Content-Type", "application/json")
 	nr.Header.Add("Authorization", fmt.Sprintf("Bearer %s", access_token))
-	
+
 	client := &http.Client{}
 	resp, err := client.Do(nr)
 	// fmt.Println(time.Second)
@@ -277,35 +275,34 @@ func Run() {
 	fmt.Println(" ")
 	fmt.Println(" ***CLI*** \n")
 	/*
-	Take input of the following
-		* nginx server address
-		* directory path of the notes (ex: /home/vagrant/notes)
-		* username
-		* password
-		* register y/n
-		* login & publish at the same time y/n
-		* sync_publish y/n (background job might do this later)
-	* user first have to signup and then publish his notes.
-	* publish
-		* iterate over all the notes and check if note already present in db, if not then add it.
+		Take input of the following
+			* nginx server address
+			* directory path of the notes (ex: /home/vagrant/notes)
+			* username
+			* password
+			* register y/n
+			* login & publish at the same time y/n
+			* sync_publish y/n (background job might do this later)
+		* user first have to signup and then publish his notes.
+		* publish
+			* iterate over all the notes and check if note already present in db, if not then add it.
 	*/
-
 
 	var opts = Options{}
 	_, err := flags.ParseArgs(&opts, os.Args)
 
-	if (err != nil){
+	if err != nil {
 		cmd_error(err)
 	}
-	
-	if (opts.Register) {
+
+	if opts.Register {
 		if opts.Username == "" || opts.Password == "" {
 			cmd_error(errors.New("missing username/password."))
 		}
 		RegisterNginxAccount(&opts)
 	}
 
-	if (opts.Publish) {
+	if opts.Publish {
 		// publish notes from local dir to server.
 		if opts.Username == "" || opts.Password == "" || opts.PathDir == "" {
 			cmd_error(errors.New("missing username/password/path directory."))
@@ -321,3 +318,6 @@ func Run() {
 	}
 
 }
+
+
+// gofmt -w <filename>
