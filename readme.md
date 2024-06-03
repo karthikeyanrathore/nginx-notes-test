@@ -121,3 +121,9 @@ end
 * added text search index for search notes
 * added rate limiter for controlling API requests.
 * disabled `TCP_NODELAY` option for performance.
+
+
+## Todos
+- [ ] setup prometheus and grafana
+- [ ] setup k8s
+- [ ] include testcases for APIs
