@@ -124,6 +124,6 @@ end
 
 
 ## Todos
-- [ ] setup prometheus and grafana
+- [x] setup prometheus and grafana for monitoring.
 - [ ] setup k8s
 - [ ] include testcases for APIs
